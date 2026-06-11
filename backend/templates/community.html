@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Community Summary</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI', Tahoma, sans-serif;
+}
+
+/* ===== NAVBAR ===== */
+.navbar{
+    background:#1e3a8a;
+    padding:18px 50px;
+    color:white;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.navbar h1{
+    font-size:22px;
+}
+
+.navbar a{
+    color:white;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+/* ===== HERO SLIDER ===== */
+.hero{
+    position:relative;
+    height:300px;
+    overflow:hidden;
+}
+
+.hero img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position:center 2%;  /* 👈 move focus downward */
+}
+
+.hero-text{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    color:white;
+    text-align:center;
+}
+
+
+/* ===== INFO SECTION ===== */
+.info-section{
+    padding:50px 20px;
+    text-align:center;
+    background:linear-gradient(135deg, #4A90E2, #50E3C2);
+    color:white;
+}
+
+.info-section h2{
+    font-size:32px;
+    margin-bottom:15px;
+}
+
+.info-section p{
+    max-width:800px;
+    margin:auto;
+    font-size:18px;
+}
+
+/* ===== SUMMARY SECTION ===== */
+.summary-section{
+    padding:60px 20px;
+    display:flex;
+    justify-content:center;
+}
+
+.summary-container{
+    background:#fff;
+    padding:40px;
+    border-radius:20px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.2);
+    width:600px;
+    text-align:center;
+}
+
+.summary-container h3{
+    margin-bottom:20px;
+    color:#1e3a8a;
+}
+
+input{
+    width:100%;
+    padding:14px;
+    margin-bottom:15px;
+    border-radius:10px;
+    border:1px solid #ccc;
+    font-size:15px;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    background:#1e3a8a;
+    color:white;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    background:#14265f;
+}
+
+pre#summaryResult{
+    margin-top:20px;
+    padding:15px;
+    border-radius:12px;
+    background:#f3f4f6;
+    text-align:left;
+    max-height:250px;
+    overflow-y:auto;
+}
+
+/* ===== FOOTER ===== */
+.footer{
+    background:#111827;
+    color:white;
+    text-align:center;
+    padding:20px;
+    margin-top:40px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+    <h1>Community Intelligence</h1>
+    <a href="mainmenu.html">Back to Menu</a>
+</div>
+
+<!-- HERO IMAGE SLIDER -->
+<div class="hero">
+     <img src="img/community-banner.png">
+</div>
+
+<!-- INFO -->
+<div class="info-section">
+    <h2>Community Powered Scam Detection</h2>
+    <p>
+        Our platform analyzes real user reviews to provide a community-driven verdict
+        about companies and internship offers. Stay informed. Stay safe.
+    </p>
+</div>
+
+<!-- SUMMARY TOOL -->
+<div class="summary-section">
+    <div class="summary-container">
+        <h3>Check Community Summary</h3>
+        <input id="company_name" placeholder="Enter company name or LinkedIn URL">
+        <button id="summaryBtn">Get Summary</button>
+        <pre id="summaryResult"></pre>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    © 2026 Scam Verification System | Powered by AI + Community Data
+</div>
+
+<script>
+/* ===== IMAGE SLIDER ===== */
+let slides = document.querySelectorAll(".hero img");
+let index = 0;
+
+setInterval(()=>{
+    slides[index].classList.remove("active");
+    index = (index + 1) % slides.length;
+    slides[index].classList.add("active");
+}, 3000);
+
+/* ===== EXISTING FETCH FUNCTION ===== */
+document.getElementById("summaryBtn").onclick = () => {
+
+    const companyInput = document.getElementById("company_name");
+    const resultDiv = document.getElementById("summaryResult");
+
+    if (!companyInput.value.trim()) {
+        resultDiv.innerText = "Please enter a company name or LinkedIn URL.";
+        return;
+    }
+
+    fetch(`http://127.0.0.1:5000/community_summary/${encodeURIComponent(companyInput.value)}`)
+      .then(res => res.json())
+      .then(data => {
+
+          if (data.error) {
+              resultDiv.innerText = `Error: ${data.error}`;
+              return;
+          }
+
+          resultDiv.innerText = 
+              `Company: ${data.company}\n` +
+              `Total Reviews: ${data.reviews_count}\n` +
+              `Verdict: ${data.final_verdict}\n\n` +
+              `Summary:\n${data.summary}`;
+      })
+      .catch(err => {
+          resultDiv.innerText = "Network error: " + err.message;
+      });
+};
+</script>
+
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login | Scam Verification System</title>
+<link rel="icon" href="img/email.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI', Tahoma, sans-serif;
+}
+
+/* ===== BODY ===== */
+body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#f1f5f9;
+    position:relative;
+}
+
+body::before{
+    content:"";
+    position:absolute;
+    width:100%;
+    height:100%;
+    background:
+        linear-gradient(120deg, rgba(37,99,235,0.05) 25%, transparent 25%) -50px 0,
+        linear-gradient(300deg, rgba(37,99,235,0.05) 25%, transparent 25%);
+    background-size:100px 100px;
+}
+
+@keyframes moveBg{
+    0%{ transform:translate(0,0); }
+    50%{ transform:translate(-50px,-30px); }
+    100%{ transform:translate(0,0); }
+}
+
+/* ===== LOGIN CARD ===== */
+.login-container{
+    width:420px;
+    background:rgba(255,255,255,0.92);
+    padding:50px;
+    border-radius:25px;
+    box-shadow:0 30px 60px rgba(0,0,0,0.4);
+    text-align:center;
+    position:relative;
+    z-index:1;
+}
+
+.login-container h2{
+    font-size:2rem;
+    margin-bottom:30px;
+    color:#1e3a8a;
+}
+
+/* ===== INPUTS ===== */
+input{
+    width:100%;
+    padding:16px;
+    margin:14px 0;
+    border-radius:12px;
+    border:1px solid #d1d5db;
+    font-size:15px;
+    transition:0.3s;
+}
+
+input:focus{
+    border-color:#2563eb;
+    box-shadow:0 0 6px rgba(37,99,235,0.5);
+    outline:none;
+}
+
+/* ===== BUTTON ===== */
+button{
+    width:100%;
+    padding:16px;
+    margin-top:20px;
+    border:none;
+    border-radius:35px;
+    background:linear-gradient(135deg,#2563eb,#1e3a8a);
+    color:white;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.3);
+}
+
+/* ===== MESSAGE ===== */
+#loginMsg{
+    margin-top:18px;
+    font-size:14px;
+    font-weight:bold;
+}
+
+.error{ color:#dc2626; }
+.success{ color:#059669; }
+
+/* ===== REGISTER LINK ===== */
+.register-link{
+    margin-top:22px;
+    display:block;
+    font-size:14px;
+    color:#2563eb;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.register-link:hover{
+    text-decoration:underline;
+}
+
+.project-title{
+    position:absolute;
+    top:40px;
+    text-align:center;
+    z-index:1;
+}
+
+.project-title img{
+    width:40px;
+    margin-bottom:8px;
+}
+
+.project-title h1{
+    font-size:22px;
+    color:#1e3a8a;
+    font-weight:700;
+}
+
+
+/* ===== FOOTER ===== */
+.footer{
+    position:absolute;
+    bottom:0;
+    width:100%;
+    background:#0f172a;
+    color:#e2e8f0;
+    text-align:center;
+    padding:18px 10px;
+    font-size:13px;
+}
+.footer p{
+    margin:4px 0;
+}
+</style>
+</head>
+
+<body>
+<div class="project-title">
+    <img src="img/email.png" alt="Logo">
+    <h1>AI-Powered Community Scam Verification System</h1>
+</div>
+
+<div class="login-container">
+    <h2>Secure Login</h2>
+
+    <input id="email" placeholder="Email" type="email">
+    <input id="password" placeholder="Password" type="password">
+
+    <button id="loginBtn">Login</button>
+
+    <div id="loginMsg"></div>
+
+    <span class="register-link" onclick="window.location.href='register.html'">
+        Don't have an account? Create one
+    </span>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    <p>© 2026 Scam Verification System</p>
+    <p>AI-Powered | Community Driven | Secure Authentication</p>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+document.getElementById("loginBtn").onclick = async () => {
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const msg = document.getElementById("loginMsg");
+
+    msg.innerText = "";
+
+    try {
+        const data = await postJSON("/login", { email, password });
+
+        console.log("LOGIN RESPONSE:", data);  // Debug
+
+        if (!data.role) {
+            msg.innerText = data.error || "Login failed";
+            return;
+        }
+
+        // Store user data
+        localStorage.setItem("userRole", data.role);
+        localStorage.setItem("userInstitution", data.institution);
+        localStorage.setItem("userId", data.user_id);
+
+        // 🔥 THIS IS THE IMPORTANT PART
+        if (data.role === "admin") {
+            window.location.href = "admin.html";   // Pending page
+        } else if (data.role === "student") {
+            window.location.href = "mainmenu.html";  // Student dashboard
+        }
+
+    } catch (err) {
+        msg.innerText = "Server error.";
+    }
+};
+</script>
+
+</body>
+</html>

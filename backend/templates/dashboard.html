@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Community Scam Detector</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Page Background */
+body {
+    display: flex;
+    justify-content: center;   /* CENTER horizontally */
+    align-items: center;       /* CENTER vertically */
+    min-height: 100vh;
+    background: linear-gradient(135deg, #4A90E2, #6A5ACD);
+    padding: 20px;             /* small padding for mobile */
+}
+
+/* Main Dashboard */
+.dashboard {
+    width: 75%;                 /* 3/4 WIDTH */
+    min-height: 85vh;           /* GOOD HEIGHT */
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+h1 {
+    color: #4A90E2;
+    margin-bottom: 25px;
+}
+
+/* Input Fields */
+input, textarea {
+    width: 100%;
+    padding: 14px;
+    margin-top: 12px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+input:focus, textarea:focus {
+    border-color: #4A90E2;
+    box-shadow: 0 0 10px rgba(74,144,226,0.3);
+    outline: none;
+}
+
+.or-text {
+    text-align: center;
+    margin: 20px 0;
+    font-weight: 600;
+    color: #888;
+}
+
+/* Button */
+button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 18px;
+    border-radius: 12px;
+    border: none;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    background: linear-gradient(90deg, #4A90E2, #6A5ACD);
+    color: white;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: scale(1.02);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+/* Loader */
+.loader {
+    display: none;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.spinner {
+    width: 45px;
+    height: 45px;
+    border: 5px solid #eee;
+    border-top: 5px solid #4A90E2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: auto;
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
+/* Result Card */
+.result-card {
+    margin-top: 30px;
+    padding: 25px;
+    border-radius: 16px;
+    background: #f9fbff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    display: none;
+    transition: 0.3s;
+}
+
+.result-card h3 {
+    margin-bottom: 15px;
+}
+
+/* Progress Bar */
+.progress-container {
+    width: 100%;
+    height: 18px;
+    background: #eee;
+    border-radius: 20px;
+    overflow: hidden;
+    margin: 12px 0;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    border-radius: 20px;
+    transition: width 1s ease-in-out;
+}
+
+/* Reasons */
+.reasons li {
+    margin-bottom: 6px;
+}
+
+/* History */
+.history-section {
+    margin-top: 40px;
+}
+
+.history-item {
+    padding: 10px;
+    background: #f1f1f1;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="dashboard">
+
+<h1>Community Scam Detector</h1>
+
+<input type="text" id="linkedin_url"
+placeholder="Paste LinkedIn Company URL">
+
+<div class="or-text">OR</div>
+
+<textarea id="offer_text"
+placeholder="Paste internship offer text here"
+rows="6"></textarea>
+
+<button id="analyzeBtn">Analyze Offer</button>
+
+<div class="loader" id="loader">
+    <div class="spinner"></div>
+    <p>Analyzing with AI...</p>
+</div>
+
+<div class="result-card" id="resultCard">
+    <h3>🔍 AI Analysis Result</h3>
+    <div id="resultContent"></div>
+</div>
+
+<div class="history-section">
+    <h3>📜 Analysis History</h3>
+    <div id="historyBox"></div>
+</div>
+
+</div>
+
+<script>
+
+function saveToHistory(data) {
+    const historyBox = document.getElementById("historyBox");
+    const item = document.createElement("div");
+    item.className = "history-item";
+    item.innerHTML = `
+        <strong>${data.company || "Unknown"}</strong> -
+        <span style="color:${data.verdict === "FAKE" ? "red" : data.verdict === "REAL" ? "green" : "orange"};">
+        </span>
+    `;
+    historyBox.prepend(item);
+}
+
+document.getElementById("analyzeBtn").onclick = async () => {
+
+    const offer_text = document.getElementById("offer_text").value.trim();
+    const linkedin_url = document.getElementById("linkedin_url").value.trim();
+    const loader = document.getElementById("loader");
+    const resultCard = document.getElementById("resultCard");
+    const resultContent = document.getElementById("resultContent");
+
+    if (!offer_text && !linkedin_url) {
+        alert("Please provide LinkedIn URL or Offer Text.");
+        return;
+    }
+
+    loader.style.display = "block";
+    resultCard.style.display = "none";
+
+    try {
+        const response = await fetch("http://127.0.0.1:5000/analyze_offer", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                offer_text: offer_text || null,
+                linkedin_url: linkedin_url || null
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error("Server error: " + response.status);
+        }
+
+        const data = await response.json();
+
+        loader.style.display = "none";
+        resultCard.style.display = "block";
+
+        let color = "gray";
+        if (data.verdict === "REAL") color = "green";
+        if (data.verdict === "SUSPICIOUS") color = "orange";
+        if (data.verdict === "FAKE") color = "red";
+
+
+        resultContent.innerHTML = `
+            <p><strong>Company:</strong> ${data.company || "Unknown"}</p>
+            <p><strong>Source:</strong> ${data.source || "AI"}</p>
+            <p><strong>Verdict:</strong> 
+                <span style="color:${color}; font-weight:bold;">
+                    ${data.verdict}
+                </span>
+            </p>
+            <p><strong>Risk Score:</strong> ${data.risk_score}%</p>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="riskBar" 
+                style="background:${color};"></div>
+            </div>
+
+            <div class="reasons">
+                <strong>Reasons:</strong>
+                <ul>
+                    ${data.reasons ? data.reasons.map(r => `<li>${r}</li>`).join("") : ""}
+                </ul>
+            </div>
+        `;
+
+        setTimeout(() => {
+            document.getElementById("riskBar").style.width = data.risk_score + "%";
+        }, 200);
+
+        saveToHistory(data);
+
+    } catch (error) {
+        loader.style.display = "none";
+        alert("Error connecting to backend server.");
+    }
+};
+</script>
+
+</body>
+</html>
